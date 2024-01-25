@@ -9,7 +9,7 @@
 import sys
 import os
 import subprocess
-import sys
+import glob
 
 # Export path
 def set_path():
@@ -29,7 +29,7 @@ def check_args():
     Must pass CLA or script exits gracefully
     '''
     # Check if the correct number of command line arguments are provided
-    if len(sys.argv) != 5:
+    if len(sys.argv) < 5:
         print("Usage: python auto_cmorall_subdd.py master runname startyear endyear")
         sys.exit(1)
 
@@ -90,14 +90,60 @@ def cmorit(master, runname, startyear, endyear, tres, num_pday, tres_ychunk, YN_
         print(f'~~~~~~ Starting:  {doit_cmor} ~~~~~')
         subprocess.call(doit_cmor, shell=True)
 
+# Option compression add-on
+def compress_all(compress_binary):
+    '''
+    Option to compress all the NetCDF files 
+    produced by subdaily CMOR process.
+    Will use the most recent file by timestamp
+    to determine the run that needs to be compressed.
+    '''
+
+    if compress_binary == 1:
+        print("Compressing NetCDF files with level 1 compression...")
+
+        # iterate through files and compress
+        # Get a list of all files matching the pattern
+        CMIP6_files = glob.glob("CMIP6/*/*/*/*/*/*/*/*/*/*_gn_*.nc")
+
+        # Check if any files were found
+        if CMIP6_files:
+            # Get the latest file based on modification time (to pick out the latest run)
+            latest_file = max(CMIP6_files, key=os.path.getmtime)
+            subdirs = latest_file.split("/")
+            print("Compressing files...")
+            for ncfile in glob.glob(f"{subdirs[0]}/{subdirs[-10]}/{subdirs[-9]}/{subdirs[-8]}/{subdirs[-7]}/{subdirs[-6]}/*/*/*/*/*_gn_*nc"):
+                compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
+                subprocess.call(compressit, shell=True)
+                print(compressit)
+
+            print('File compression finished! :)')
+
+        else:
+            print("No files found in the specified directory pattern.")
+
+
 # Set up execution of proc
 def run():
     check_args()
-    # Extract command line arguments
+    # Extract mandatory command line arguments
     master = sys.argv[1]
     runname = sys.argv[2]
     startyear = sys.argv[3]
     endyear = sys.argv[4]
+    # Extract optional compression argument
+    if (len(sys.argv) > 5):
+        if (sys.argv[5].lower() == "compress"):
+            do_compress = 1 # compression binary
+        else:
+            print("Too many command line aguments passed OR compression argument not understandable")
+            print("If you would like compression, enter 'compress' as the 6th argument")
+            print("Exiting...")
+            sys.exit(0)
+    else:
+        do_compress = 0 # compression binary
+        print("No compression argument passed. NOT compressing data")
+
     # Set variable for 6hrL master
     master_6hrL = "master_cmor3_6hrL.ksh"
 
@@ -132,8 +178,11 @@ def run():
     cmorit(master, runname, startyear, endyear, "day3d", 1, 5, "n")
     # 6hrL
     cmorit(master_6hrL, runname, startyear, endyear, "6hrL", 4, 1, "y")
+    
+    # Compress the data if argument passed
+    compress_all(do_compress)
 
 # Run it
 run()
 
-print("!!!!!!! SUBDAILY CMORizing COMPLETE !!!!!!!")
+print("!!!!!!! SUBDAILiY CMORizing COMPLETE !!!!!!!")
