@@ -30,7 +30,7 @@ def check_args():
     '''
     # Check if the correct number of command line arguments are provided
     if len(sys.argv) < 5:
-        print("Usage: python auto_cmorall_subdd.py master runname startyear endyear")
+        print("Usage: python auto_cmorall_subdd.py master runname startyear endyear OptionalCompressionArg")
         sys.exit(1)
 
 # dynamic function, any res ## check for accuracy
