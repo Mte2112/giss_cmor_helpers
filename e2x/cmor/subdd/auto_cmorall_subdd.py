@@ -29,9 +29,9 @@ def check_args():
     Must pass CLA or script exits gracefully
     '''
     # Check if the correct number of command line arguments are provided
-    if len(sys.argv) < 5:
-        print("Usage: python auto_cmorall_subdd.py master runname startyear endyear OptionalCompressionArg")
-        print('Add 6th argument "compress" to turn on compression')
+    if len(sys.argv) < 4:
+        print("Usage: python auto_cmorall_subdd.py runname startyear endyear compress")
+        print('Optional 5th argument "compress" to turn on compression')
         sys.exit(1)
 
 # dynamic function, any res ## check for accuracy
@@ -128,13 +128,14 @@ def compress_all(compress_binary):
 def run():
     check_args()
     # Extract mandatory command line arguments
-    master = sys.argv[1]
-    runname = sys.argv[2]
-    startyear = sys.argv[3]
-    endyear = sys.argv[4]
+    master = "master_cmor3.ksh"
+    runname = sys.argv[1]
+    startyear = sys.argv[2]
+    endyear = sys.argv[3]
+
     # Extract optional compression argument
-    if (len(sys.argv) > 5):
-        if (sys.argv[5].lower() == "compress"):
+    if (len(sys.argv) > 4):
+        if (sys.argv[4].lower() == "compress"):
             do_compress = 1 # compression binary
         else:
             print("Too many command line aguments passed OR compression argument not understandable")
@@ -144,7 +145,7 @@ def run():
     else:
         do_compress = 0 # compression binary
         print("No compression argument passed. NOT compressing data")
-
+    
     # Set variable for 6hrL master
     master_6hrL = "master_cmor3_6hrL.ksh"
 
