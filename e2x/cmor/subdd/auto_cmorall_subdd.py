@@ -140,8 +140,8 @@ def retrieve_6hrLev(file_path_array):
     path2data = f'../CMOR3_6hrL/{CMIP6up2variant}/6hrLev'
     # Copy the data to the normal CMIP6 filesystem, where it can happily coexist with its CMIP data counterparts
     if os.path.exists(path2data):
-        copy_6hrLev = f'cp -pr {path2data} {CMIP6up2variant}/'
-        subprocess.call(copy_6hrLev, shell=True)
+        mv_6hrLev = f'mv {path2data} {CMIP6up2variant}/'
+        subprocess.call(mv_6hrLev, shell=True)
     else:
         print(f'No 6hrLev output found - {path2data}. Check your file system')
         print(f'Proceeding without copying 6hrLev folder...')
