@@ -75,7 +75,6 @@ def cmorit(master, runname, startyear, endyear, tres, num_pday, tres_ychunk, YN_
             doit_cmor = f'{master} {runname} {y2} {startyear}'
         else:
             doit_cmor = f'{master} {runname} {tres} {num_data_points} {y1} {y2} {startyear}'
-        print(f'~~~~~~ Starting:  {doit_cmor} ~~~~~')
         subprocess.call(doit_cmor, shell=True)
         y1 = y2 + 1
         y2 = y1 + tres_ychunk - 1
@@ -88,11 +87,68 @@ def cmorit(master, runname, startyear, endyear, tres, num_pday, tres_ychunk, YN_
             doit_cmor = f'{master} {runname} {y2} {startyear}'
         else:
             doit_cmor = f'{master} {runname} {tres} {num_data_points} {y1} {y2} {startyear}'
-        print(f'~~~~~~ Starting:  {doit_cmor} ~~~~~')
         subprocess.call(doit_cmor, shell=True)
 
+    print(f'~~~~~~ Completed:  {doit_cmor} ~~~~~')
+
+
+def get_output_dirs():
+    '''
+    Find the output directory structure using the 
+    most recent file by time stamp in the CMIP6 
+    directory.
+    This will be used for compression and also
+    retrieving the 6hrL files which are outputted
+    to a different directory (../CMOR3_6hrL).
+    '''
+
+    # Get a list of all files matching the pattern
+    CMIP6_files = glob.glob("CMIP6/*/*/*/*/*/*/*/*/*/*_gn_*.nc")
+    
+    # Check if files were found in glob
+    if len(CMIP6_files) > 0:
+        # Get the latest file based on modification time (to pick out the latest run)
+        latest_file = max(CMIP6_files, key=os.path.getmtime)
+        file_path_array = latest_file.split("/") # array of all components of the file path
+
+    else: 
+        print('Attemp to locate output directory structure failed')
+        print('No CMIP6 files found in assumed location (CMOR3.3.2/CMIP6). Either there are no CMORized outputs or something else is wrong')
+        print('Please check CMOR3.3.2 to confirm')
+        print('Exiting...')
+        sys.exit(0)
+
+    return file_path_array
+
+
+def retrieve_6hrLev(file_path_array):
+    '''
+    Currently, the subdailly CMOR process is set up to CMORize and export 6hrLev
+    data to a separate directory from the rest of the outputs. 
+    This directory is in ../CMOR3_6hrL/
+    The reasoning behind this programming choice is being investigated, but 
+    according to tests, the 6hrLev data does not get processed correctly when try to 
+    CMORize and export within CMOR3.3.2.
+    The band aid solution to this is to just copy the 6hrLev data over after
+    CMORization. 
+    This is the purpose of this fucntion.
+    '''
+
+    # Get normal CMIP6 data output path up to the variant
+    CMIP6up2variant = f'{file_path_array[0]}/{file_path_array[-10]}/{file_path_array[-9]}/{file_path_array[-8]}/{file_path_array[-7]}/{file_path_array[-6]}'
+    # Get the 6hrLev data from the relevant directory 
+    path2data = f'../CMOR3_6hrL/{CMIP6up2variant}/6hrLev'
+    # Copy the data to the normal CMIP6 filesystem, where it can happily coexist with its CMIP data counterparts
+    if os.path.exists(path2data):
+        copy_6hrLev = f'cp -pr {path2data} {CMIP6up2variant}/'
+        subprocess.call(copy_6hrLev, shell=True)
+    else:
+        print(f'No 6hrLev output found - {path2data}. Check your file system')
+        print(f'Proceeding without copying 6hrLev folder...')
+
+
 # Option compression add-on
-def compress_all(compress_binary):
+def compress_all(compress_binary, file_path_array):
     '''
     Option to compress all the NetCDF files 
     produced by subdaily CMOR process.
@@ -103,25 +159,14 @@ def compress_all(compress_binary):
     if compress_binary == 1:
         print("Compressing NetCDF files with level 1 compression...")
 
-        # iterate through files and compress
-        # Get a list of all files matching the pattern
-        CMIP6_files = glob.glob("CMIP6/*/*/*/*/*/*/*/*/*/*_gn_*.nc")
+        for ncfile in glob.glob(f"{file_path_array[0]}/{file_path_array[-10]}/{file_path_array[-9]}/{file_path_array[-8]}/{file_path_array[-7]}/{file_path_array[-6]}/*/*/*/*/*_gn_*nc"):
+            compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
+            subprocess.call(compressit, shell=True)
 
-        # Check if any files were found
-        if CMIP6_files:
-            # Get the latest file based on modification time (to pick out the latest run)
-            latest_file = max(CMIP6_files, key=os.path.getmtime)
-            subdirs = latest_file.split("/")
-            print("Compressing files...")
-            for ncfile in glob.glob(f"{subdirs[0]}/{subdirs[-10]}/{subdirs[-9]}/{subdirs[-8]}/{subdirs[-7]}/{subdirs[-6]}/*/*/*/*/*_gn_*nc"):
-                compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
-                subprocess.call(compressit, shell=True)
-                print(compressit)
+        print('File compression finished! :)')
 
-            print('File compression finished! :)')
-
-        else:
-            print("No files found in the specified directory pattern.")
+    else:
+        print("No files have been compressed because no files were found!")
 
 
 # Set up execution of proc
@@ -167,7 +212,8 @@ def run():
     print("| Startyear:", startyear)
     print("| Endyear:", endyear)
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
-
+    
+    ## CMORization
     # 3hr
     cmorit(master, runname, startyear, endyear, "3hr", 8, 5, "n")
     # 6hr2d
@@ -181,8 +227,13 @@ def run():
     # 6hrL
     cmorit(master_6hrL, runname, startyear, endyear, "6hrL", 4, 1, "y")
     
+    ## Clean up and compression
+    # Get the output directory structure
+    file_path_info = get_output_dirs()
+    # Move 6hrL data to the folder with the rest of the data
+    retrieve_6hrLev(file_path_info)
     # Compress the data if argument passed
-    compress_all(do_compress)
+    compress_all(do_compress, file_path_info)
 
 # Run it
 run()
