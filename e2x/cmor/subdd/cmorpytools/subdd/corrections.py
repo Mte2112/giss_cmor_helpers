@@ -47,11 +47,8 @@ class RSDS:
         
         ncfile = rsdsdiff_file.split('/')[-1]
         dirs = rsdsdiff_file.split(cmordir)[1].split(ncfile)[0]
-        try:
-            makedirs_command = f'mkdir -p {cmordir}/rsdsdiff_files/{dirs}'
-            subprocess.call(makedirs_command, shell=True)
-        except:
-            print(f'Could not make directories {cmordir}/rsdsdiff_files/{dirs}')
+        makedirs_command = f'mkdir -p {cmordir}/rsdsdiff_files/{dirs}'
+        subprocess.call(makedirs_command, shell=True)
 
     
     # Open datasets
@@ -154,6 +151,25 @@ class RSDS:
         result = da.groupby('hourofyear')
         
         return result
+
+
+    def overwrite_original_files(self, rsdsdiff_file, cmordir):
+        '''
+        Overwrite original (incorrect) file with corrected file
+        '''
+        ncfile = rsdsdiff_file.split("/")[-1]
+        dirs = rsdsdiff_file.split(cmordir)[1].split(ncfile)[0]
+        dir_up2file = rsdsdiff_file.split(ncfile)[0]
+        try:
+            cp_command = f'cp -p {cmordir}/rsdsdiff_files/{dirs}/{ncfile} {dir_up2file}/'
+            rm_temp_command = f'rm -f {cmordir}/rsdsdiff_files/{dirs}/{ncfile}'
+            print(f'\nOverwriting original file with corrected file: {ncfile}')
+            subprocess.call(cp_command, shell=True)
+            print(f'Removing temp file {cmordir}/rsdsdiff_files/{dirs}/{ncfile}\n')
+            subprocess.call(rm_temp_command, shell=True)
+
+        except:
+            print(f'\nCopy command failed for {ncfile}. Check file in {cmordir}/rsdsdiff_files/{dirs}\n')
         
     
     def run(self, rsdsdiff_f, coszfile, cmordir):
@@ -174,14 +190,14 @@ class RSDS:
         elif 'rsdsdiff' in self.open_datasets(cosz_f, rsdsdiff_f)[1].data_vars:
             rsdsdiff = self.open_datasets(cosz_f, rsdsdiff_f)[1]
         else:
-            print("'rsdsdiff' variable not detected in either dataset")
+            print("'\nrsdsdiff' variable not detected in either dataset. Exiting...\n")
             sys.exit()
         if 'cosz2' in self.open_datasets(cosz_f, rsdsdiff_f)[0].data_vars:
             cosz = self.open_datasets(cosz_f, rsdsdiff_f)[0]
         elif 'cosz2' in self.open_datasets(cosz_f, rsdsdiff_f)[1].data_vars:
             cosz = self.open_datasets(cosz_f, rsdsdiff_f)[1]
         else:
-            print("'cosz2' variable not detected in either dataset")
+            print("\n'cosz2' variable not detected in either dataset. Exiting...\n")
             sys.exit()
         
         # Save metadata in orig file
@@ -256,7 +272,7 @@ class RSDS:
         return outds
 
 
-    def check_files(self, rsdsdiff_glob, cosz_f, cmordir, startyear, endyear):
+    def check_files_and_run(self, rsdsdiff_glob, cosz_f, cmordir, startyear, endyear):
         '''
         1) Check for 3hr/rsdsdiff files for the given run
         
@@ -271,7 +287,7 @@ class RSDS:
         
         # If 3hr/rsdsdiff files found...
         if len(rsdsdiff_glob) > 0:
-            print("Running rsdsdiff correction script...")
+            print("\nRunning rsdsdiff correction script...")
             print(f'{len(rsdsdiff_glob)} files detected. Checking for date range compliance and correcting with cosz input...')
             # Iterate through globed files and run() if files pass checks
             for file in rsdsdiff_glob:
@@ -283,11 +299,12 @@ class RSDS:
                     try:
                         # Call the run method on the instance
                         self.run(rsdsdiff_file, cosz_f, cmordir)
+                        # Overwrite the original file
+                        self.overwrite_original_files(rsdsdiff_file, cmordir)
                     except Exception as e:
-                        print(f'!!!!!!! rsdsdiff step failed for {rsdsdiff_file}. Skipping... !!!!!!!')
+                        print(f'!!!!!!! rsdsdiff step failed for {rsdsdiff_file}. Skipping... !!!!!!!\n')
                         print("Error:", e)
                 else:
-                    print(f'!!!!!!! {rsdsdiff_file.split("/")[-1]} not within time range specified in command line arguments ({startyear}, {endyear}). Skipping... !!!!!!!')
+                    print(f'!!!!!!! {rsdsdiff_file.split("/")[-1]} not within time range specified in command line arguments ({startyear}, {endyear}). Skipping... !!!!!!!\n')
         else:
-            print("!!!!!!! No 3hr/rsdsdiff files detected. Skipping this step... !!!!!!!")
-    
+            print("!!!!!!! No 3hr/rsdsdiff files detected. Skipping this step... !!!!!!!\n")

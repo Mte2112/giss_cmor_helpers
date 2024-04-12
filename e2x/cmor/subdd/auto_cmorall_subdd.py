@@ -49,23 +49,23 @@ def run():
     
     ## CMORization
     # 3hr
-    sdc.cmorit(master, runname, startyear, endyear, "3hr", 8, 5, "n")
+    #sdc.cmorit(master, runname, startyear, endyear, "3hr", 8, 5, "n")
     # 6hr2d
-    sdc.cmorit(master, runname, startyear, endyear, "6hr2d", 4, 25, "n")
+    #sdc.cmorit(master, runname, startyear, endyear, "6hr2d", 4, 25, "n")
     # 6hrP
-    sdc.cmorit(master, runname, startyear, endyear, "6hrP", 4, 1, "n")
+    #sdc.cmorit(master, runname, startyear, endyear, "6hrP", 4, 1, "n")
     # day2d
-    sdc.cmorit(master, runname, startyear, endyear, "day2d", 1, 50, "n")
+    #sdc.cmorit(master, runname, startyear, endyear, "day2d", 1, 50, "n")
     # day3d
-    sdc.cmorit(master, runname, startyear, endyear, "day3d", 1, 5, "n")
+    #sdc.cmorit(master, runname, startyear, endyear, "day3d", 1, 5, "n")
     # 6hrL
-    sdc.cmorit(master_6hrL, runname, startyear, endyear, "6hrL", 4, 1, "y")
+    #sdc.cmorit(master_6hrL, runname, startyear, endyear, "6hrL", 4, 1, "y")
     
     ## Clean up stray 6hrL directory
     # Get the output directory structure
     file_path_info = sdc.get_output_dirs()
     # Move 6hrL data to the folder with the rest of the data
-    sdc.retrieve_6hrLev(file_path_info)
+    #sdc.retrieve_6hrLev(file_path_info)
 
     ## Correct the rsdsdiff data, if relevant
     # Set path to cosz file
@@ -77,7 +77,7 @@ def run():
     
     # Check if 3hr/rsdsdiff files detected and if they are within the date range specified in arguments
     rsds_instance = crsds() # create instance of class
-    rsds_instance.check_files(rsdsglob, cosz_f, cmordir, startyear, endyear)
+    rsds_instance.check_files_and_run(rsdsglob, cosz_f, cmordir, startyear, endyear)
 
     # Compress the data if argument passed
     sdc.compress_all(do_compress, file_path_info)

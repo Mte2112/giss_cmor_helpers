@@ -139,7 +139,7 @@ class All:
             file_path_array = latest_file.split("/") # array of all components of the file path
     
         else: 
-            print('Attemp to locate output directory structure failed')
+            print('\nAttemp to locate output directory structure failed\n')
             print('No CMIP6 files found in assumed location (CMOR3.3.2/CMIP6). Either there are no CMORized outputs or something else is wrong')
             print('Please check CMOR3.3.2 to confirm')
             print('Exiting...')
@@ -170,8 +170,8 @@ class All:
             mv_6hrLev = f'mv {path2data} {CMIP6up2variant}/'
             subprocess.call(mv_6hrLev, shell=True)
         else:
-            print(f'No 6hrLev output found - {path2data}. Check your file system')
-            print(f'Proceeding without copying 6hrLev folder...')
+            print(f'\nNo 6hrLev output found - {path2data}. Check your file system')
+            print(f'Proceeding without copying 6hrLev folder...\n')
     
     
     # Option compression add-on
@@ -184,16 +184,18 @@ class All:
         '''
     
         if compress_binary == 1:
-            print("Compressing NetCDF files with level 1 compression...")
+            print("\nCompressing NetCDF files with level 1 compression...")
     
             for ncfile in glob.glob(f"{file_path_array[0]}/{file_path_array[-10]}/{file_path_array[-9]}/{file_path_array[-8]}/{file_path_array[-7]}/{file_path_array[-6]}/*/*/*/*/*_gn_*nc"):
                 compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
                 subprocess.call(compressit, shell=True)
     
-            print('File compression finished! :)')
+            print('File compression finished! :)\n')
+        elif compress_binary == 0:
+            print("\nNo files have been compressed because no compression argument was passed (optional 5th argument 'compress')") 
     
         else:
-            print("No files have been compressed because no files were found!")    
+            print("No files have been compressed because no files were found!\n")    
         
         
     def __repr__(self):
