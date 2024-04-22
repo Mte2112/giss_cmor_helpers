@@ -306,5 +306,8 @@ class RSDS:
                         print("Error:", e)
                 else:
                     print(f'!!!!!!! {rsdsdiff_file.split("/")[-1]} not within time range specified in command line arguments ({startyear}, {endyear}). Skipping... !!!!!!!\n')
+            # Remove rsdsdiff temp dir
+            rem_rsds_tempdir = f"rm -r {cmordir}/rsdsdiff_files/*"
+            subprocess.call(rem_rsds_tempdir, shell=True)
         else:
             print("!!!!!!! No 3hr/rsdsdiff files detected. Skipping this step... !!!!!!!\n")
