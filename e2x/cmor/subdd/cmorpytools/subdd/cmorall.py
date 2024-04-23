@@ -188,11 +188,15 @@ class All:
     
             for ncfile in glob.glob(f"{file_path_array[0]}/{file_path_array[-10]}/{file_path_array[-9]}/{file_path_array[-8]}/{file_path_array[-7]}/{file_path_array[-6]}/*/*/*/*/*_gn_*nc"):
                 # Check if file is within year range specified in CLargs
-                dstemp = xr.open_dataset(ncfile)
+                syf = ncfile.split("/")[-1].split("_")[-1][0:4] # Start Year of File
+                eyf = ncfile.split("/")[-1].split("_")[-1].split("-")[1][0:4] # End Year of File
                 # Only compress if within time range to avoid re-compressing
-                if (dstemp.time.values[0].year >= startyear) & (dstemp.time.values[-1].year <= endyear):
-                    compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
-                    subprocess.call(compressit, shell=True)
+                try:
+                    if (int(syf) >= startyear) & (int(eyf) <= endyear):
+                        compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
+                        subprocess.call(compressit, shell=True)
+                except:
+                    print(f"\nStart year and end year not identified based on file name {ncfile}\n Skipped compression...\n"
             print('File compression finished! :)\n')
         elif compress_binary == 0:
             print("\nNo files have been compressed because no compression argument was passed (optional 5th argument 'compress')") 
