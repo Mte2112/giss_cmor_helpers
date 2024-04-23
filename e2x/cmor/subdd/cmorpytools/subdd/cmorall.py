@@ -175,7 +175,7 @@ class All:
     
     
     # Option compression add-on
-    def compress_all(compress_binary, file_path_array):
+    def compress_all(compress_binary, file_path_array, startyear, endyear):
         '''
         Option to compress all the NetCDF files 
         produced by subdaily CMOR process.
@@ -187,9 +187,12 @@ class All:
             print("\nCompressing NetCDF files with level 1 compression...")
     
             for ncfile in glob.glob(f"{file_path_array[0]}/{file_path_array[-10]}/{file_path_array[-9]}/{file_path_array[-8]}/{file_path_array[-7]}/{file_path_array[-6]}/*/*/*/*/*_gn_*nc"):
-                compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
-                subprocess.call(compressit, shell=True)
-    
+                # Check if file is within year range specified in CLargs
+                dstemp = xr.open_dataset(ncfile)
+                # Only compress if within time range to avoid re-compressing
+                if (dstemp.time.values[0].year >= startyear) & (dstemp.time.values[-1].year <= endyear):
+                    compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
+                    subprocess.call(compressit, shell=True)
             print('File compression finished! :)\n')
         elif compress_binary == 0:
             print("\nNo files have been compressed because no compression argument was passed (optional 5th argument 'compress')") 
