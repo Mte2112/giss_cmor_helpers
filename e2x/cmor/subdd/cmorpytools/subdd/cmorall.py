@@ -190,14 +190,16 @@ class All:
                 # Check if file is within year range specified in CLargs
                 syf = ncfile.split("/")[-1].split("_")[-1][0:4] # Start Year of File
                 eyf = ncfile.split("/")[-1].split("_")[-1].split("-")[1][0:4] # End Year of File
-                # Only compress if within time range to avoid re-compressing
+                # Only compress if within time range to avoid re-compression 
                 try:
                     if (int(syf) >= startyear) & (int(eyf) <= endyear):
                         compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
                         subprocess.call(compressit, shell=True)
+                    else:
+                        print(f"Start and end year not in specified range for {ncfile}")
                 except:
-                    print(f"\nStart year and end year not identified based on file name {ncfile}\n Skipped compression...\n"
-            print('File compression finished! :)\n')
+                    print(f"\nStart year and end year not identified based on file name {ncfile}\n Skipped compression...\n")
+                print('File compression finished! :)\n')
         elif compress_binary == 0:
             print("\nNo files have been compressed because no compression argument was passed (optional 5th argument 'compress')") 
     
