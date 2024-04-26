@@ -199,7 +199,7 @@ class All:
                         print(f"Start and end year not in specified range for {ncfile}")
                 except:
                     print(f"\nStart year and end year not identified based on file name {ncfile}\n Skipped compression...\n")
-                print('File compression finished! :)\n')
+            print('File compression finished! :)\n')
         elif compress_binary == 0:
             print("\nNo files have been compressed because no compression argument was passed (optional 5th argument 'compress')") 
     
