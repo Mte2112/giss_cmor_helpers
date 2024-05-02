@@ -192,7 +192,7 @@ class All:
                 eyf = ncfile.split("/")[-1].split("_")[-1].split("-")[1][0:4] # End Year of File
                 # Only compress if within time range to avoid re-compression 
                 try:
-                    if (int(syf) >= startyear) & (int(eyf) <= endyear):
+                    if (int(syf) >= startyear) & (int(eyf) <= (endyear+1)): # adding one year to the end year because some hf vars (e.g. in 6hrPlevPt) filenames have end date of Jan 1 in the following year
                         compressit = f"ncks -4 -L 1 -h -O {ncfile} {ncfile}"
                         subprocess.call(compressit, shell=True)
                     else:
