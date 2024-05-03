@@ -171,8 +171,8 @@ class All:
             # Move 6hrLev data to CMOR3.3.2
             mv_6hrLev = f'mv {path2data} {CMIP6up2variant}/'
             subprocess.call(mv_6hrLev, shell=True)
-            # Clean up direct in CMOR3_6hrL
-            cleanup6hrL = f" rm -r {path2MIPera}"
+            # Clean up empty direcs in CMOR3_6hrL
+            cleanup6hrL = f'rm -r {path2MIPera}'
             subprocess.call(cleanup6hrL, shell=True)
         else:
             print(f'\nNo 6hrLev output found - {path2data}. Check your file system')
