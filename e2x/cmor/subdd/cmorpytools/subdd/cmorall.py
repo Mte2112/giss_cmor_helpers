@@ -165,10 +165,15 @@ class All:
         CMIP6up2variant = f'{file_path_array[0]}/{file_path_array[-10]}/{file_path_array[-9]}/{file_path_array[-8]}/{file_path_array[-7]}/{file_path_array[-6]}'
         # Get the 6hrLev data from the relevant directory 
         path2data = f'../CMOR3_6hrL/{CMIP6up2variant}/6hrLev'
+        path2MIPera = f'../CMOR3_6hrL/{file_path_array[0]}' # for cleaning up purposes
         # Copy the data to the normal CMIP6 filesystem, where it can happily coexist with its CMIP data counterparts
         if os.path.exists(path2data):
+            # Move 6hrLev data to CMOR3.3.2
             mv_6hrLev = f'mv {path2data} {CMIP6up2variant}/'
             subprocess.call(mv_6hrLev, shell=True)
+            # Clean up direct in CMOR3_6hrL
+            cleanup6hrL = f" rm -r {path2MIPera}"
+            subprocess.call(cleanup6hrL, shell=True)
         else:
             print(f'\nNo 6hrLev output found - {path2data}. Check your file system')
             print(f'Proceeding without copying 6hrLev folder...\n')
