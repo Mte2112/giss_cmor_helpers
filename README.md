@@ -1,2 +1,2 @@
 # GISS ModelE N.X CMOR helper scripts  
-readme coming soon(?)...
+Automating CMOR for ModelE (and also sometimes just using brute force)
